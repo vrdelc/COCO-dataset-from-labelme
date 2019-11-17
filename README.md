@@ -1,10 +1,17 @@
 # COCO dataset from labelme
  Creating a COCO dataset from labelme's annotations
 
+## Requirements
+
+Install [Labelme](https://github.com/wkentaro/labelme)
+
+Know the path of the installation
+
 ## Parameters
     - -i: Name of the folder which contains the images and annotations
     - -f: Name of the final folder with the COCO dataset
     - -l: Path to the file with the labels of the dataset
+    - -p: Path to the labelme installation
     - -y: Year of the dataset. By default, it is 2019
     - -t: Percetage of training. By default, it is 70
 
