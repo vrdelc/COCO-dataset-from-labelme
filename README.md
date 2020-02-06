@@ -30,3 +30,13 @@ Know the path of the installation
         - image_2.jpeg
         - ...
         - image_15.jpeg
+
+## Cite This Project
+If you use this project in your research or wish to refer to the baseline results published in the README, please use the following BibTeX entry.
+
+      @misc{COCOlabelme2020,
+        author =       {Virginia Riego},
+        title =        {{COCO dataset from labelme}},
+        howpublished = {\url{https://github.com/vrdelc/COCO-dataset-from-labelme}},
+        year =         {2020}
+      }
