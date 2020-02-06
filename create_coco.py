@@ -3,6 +3,7 @@ import argparse
 import os
 import random
 import shutil
+import time
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--images", required=True, help="images folder")
@@ -50,7 +51,9 @@ for file in os.listdir(folder+"/train"):
     if(file.endswith('.json') and os.path.isfile(folder+"/train"+'/'+file[:-5]+".jpeg")):
         count_train+=1
 print(str(count_train)+" images with annotations (train)")
-os.system("python "+args['labelme']+"/examples/instance_segmentation/labelme2coco.py "+folder+"/train"+" "+folder+"/train"+str(year)+" --labels " + args['labels'])
+time.sleep(2)
+os.system("python3 "+args['labelme']+"/examples/instance_segmentation/labelme2coco.py "+folder+"/train"+" "+folder+"/train"+str(year)+" --labels " + args['labels'])
+time.sleep(2)
 shutil.copyfile(folder+"/train"+str(year)+"/annotations.json",folder+"/annotations/instances_train"+str(year)+".json")
 shutil.rmtree(folder+"/train")
 count_test = 0
@@ -58,6 +61,9 @@ for file in os.listdir(folder+"/val"):
     if(file.endswith('.json') and os.path.isfile(folder+"/val"+'/'+file[:-5]+".jpeg")):
         count_test+=1
 print(str(count_test)+" images with annotations (test)")
-os.system("python "+args['labelme']+"/examples/instance_segmentation/labelme2coco.py "+folder+"/val"+" "+folder+"/val"+str(year)+" --labels " + args['labels'])
+time.sleep(2)
+
+os.system("python3 "+args['labelme']+"/examples/instance_segmentation/labelme2coco.py "+folder+"/val"+" "+folder+"/val"+str(year)+" --labels " + args['labels'])
+time.sleep(2)
 shutil.copyfile(folder+"/val"+str(year)+"/annotations.json",folder+"/annotations/instances_minival"+str(year)+".json")
 shutil.rmtree(folder+"/val")
