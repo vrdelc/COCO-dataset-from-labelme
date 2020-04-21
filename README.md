@@ -11,7 +11,7 @@ Know the path of the installation
     - -i: Name of the folder which contains the images and annotations
     - -f: Name of the final folder with the COCO dataset
     - -l: Path to the file with the labels of the dataset
-    - -p: Path to the labelme installation
+    - [-p: Path to the labelme installation (or path labelme doing: git clone https://github.com/wkentaro/labelme.git)] (Not now)
     - -y: Year of the dataset. By default, it is 2019
     - -t: Percetage of training. By default, it is 70
 
@@ -30,13 +30,3 @@ Know the path of the installation
         - image_2.jpeg
         - ...
         - image_15.jpeg
-
-## Cite This Project
-If you use this project in your research or wish to refer to the baseline results published in the README, please use the following BibTeX entry.
-
-      @misc{COCOlabelme2020,
-        author =       {Virginia Riego},
-        title =        {{COCO dataset from labelme}},
-        howpublished = {\url{https://github.com/vrdelc/COCO-dataset-from-labelme}},
-        year =         {2020}
-      }

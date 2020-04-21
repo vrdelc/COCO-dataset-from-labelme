@@ -3,13 +3,12 @@ import argparse
 import os
 import random
 import shutil
-import time
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--images", required=True, help="images folder")
 ap.add_argument("-f", "--folder", required=True, help="final folder name")
 ap.add_argument("-l", "--labels", required=True, help="labels file")
-ap.add_argument("-p", "--labelme", required=True, help="path to labelme")
+#ap.add_argument("-p", "--labelme", required=True, help="path to labelme")
 ap.add_argument("-y", "--year", required=False, default=2019, help="year (default:2019)",type=int)
 ap.add_argument("-t", "--train", required=False, default=70, help="train % (default:70)",type=int)
 
@@ -40,30 +39,22 @@ else:
     print("Folder exists, please give other name")
     sys.exit()
 
-for file in json_train:
-    shutil.copyfile(args['images']+"/"+file+".json", folder+"/train"+"/"+file+".json")
-    shutil.copyfile(args['images']+"/"+file+".jpeg", folder+"/train"+"/"+file+".jpeg")
-for file in json_val:
-    shutil.copyfile(args['images']+"/"+file+".json", folder+"/val"+"/"+file+".json")
-    shutil.copyfile(args['images']+"/"+file+".jpeg", folder+"/val"+"/"+file+".jpeg")
-count_train = 0
-for file in os.listdir(folder+"/train"):
-    if(file.endswith('.json') and os.path.isfile(folder+"/train"+'/'+file[:-5]+".jpeg")):
-        count_train+=1
-print(str(count_train)+" images with annotations (train)")
-time.sleep(2)
-os.system("python3 "+args['labelme']+"/examples/instance_segmentation/labelme2coco.py "+folder+"/train"+" "+folder+"/train"+str(year)+" --labels " + args['labels'])
-time.sleep(2)
-shutil.copyfile(folder+"/train"+str(year)+"/annotations.json",folder+"/annotations/instances_train"+str(year)+".json")
-shutil.rmtree(folder+"/train")
-count_test = 0
-for file in os.listdir(folder+"/val"):
-    if(file.endswith('.json') and os.path.isfile(folder+"/val"+'/'+file[:-5]+".jpeg")):
-        count_test+=1
-print(str(count_test)+" images with annotations (test)")
-time.sleep(2)
+def generate_dataset(method="train", json_train = []):
+    for file in json_train:
+        json_shutil = shutil.copyfile(args['images']+"/"+file+".json", folder+"/"+method+"/"+file+".json")
+        jpeg_shutil = shutil.copyfile(args['images']+"/"+file+".jpeg", folder+"/"+method+"/"+file+".jpeg")
+        print(json_shutil,jpeg_shutil)
+    count_train = 0
+    for file in os.listdir(folder+"/"+method):
+        if(file.endswith('.json') and os.path.isfile(folder+"/"+method+"/"+file[:-5]+".jpeg")):
+            count_train+=1
+    print(str(count_train)+" images with annotations: " + method)
+    output_train = os.system("python "+"labelme2coco.py "+folder+"/"+method+" "+folder+"/"+method+str(year)+" --labels " + args['labels'])
+    if output_train != 0:
+        print("Problem generating: "+method)
+        exit()
+    shutil.copyfile(folder+"/"+method+str(year)+"/annotations.json",folder+"/annotations/instances_"+method+str(year)+".json")
+    shutil.rmtree(folder+"/"+method)
 
-os.system("python3 "+args['labelme']+"/examples/instance_segmentation/labelme2coco.py "+folder+"/val"+" "+folder+"/val"+str(year)+" --labels " + args['labels'])
-time.sleep(2)
-shutil.copyfile(folder+"/val"+str(year)+"/annotations.json",folder+"/annotations/instances_minival"+str(year)+".json")
-shutil.rmtree(folder+"/val")
+generate_dataset("train", json_train)
+generate_dataset("val", json_val)
