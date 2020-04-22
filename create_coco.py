@@ -39,7 +39,7 @@ else:
     print("Folder exists, please give other name")
     sys.exit()
 
-def generate_dataset(method="train", json_train = []):
+def generate_dataset(method="train", json_train = [], method_annotations="train"):
     for file in json_train:
         json_shutil = shutil.copyfile(args['images']+"/"+file+".json", folder+"/"+method+"/"+file+".json")
         jpeg_shutil = shutil.copyfile(args['images']+"/"+file+".jpeg", folder+"/"+method+"/"+file+".jpeg")
@@ -52,8 +52,8 @@ def generate_dataset(method="train", json_train = []):
     if output_train != 0:
         print("Problem generating: "+method)
         exit()
-    shutil.copyfile(folder+"/"+method+str(year)+"/annotations.json",folder+"/annotations/instances_"+method+str(year)+".json")
+    shutil.copyfile(folder+"/"+method+str(year)+"/annotations.json",folder+"/annotations/instances_"+method_annotations+str(year)+".json")
     shutil.rmtree(folder+"/"+method)
 
-generate_dataset("train", json_train)
-generate_dataset("val", json_val)
+generate_dataset("train", json_train, "train")
+generate_dataset("val", json_val, "minival")
