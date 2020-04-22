@@ -43,7 +43,6 @@ def generate_dataset(method="train", json_train = []):
     for file in json_train:
         json_shutil = shutil.copyfile(args['images']+"/"+file+".json", folder+"/"+method+"/"+file+".json")
         jpeg_shutil = shutil.copyfile(args['images']+"/"+file+".jpeg", folder+"/"+method+"/"+file+".jpeg")
-        print(json_shutil,jpeg_shutil)
     count_train = 0
     for file in os.listdir(folder+"/"+method):
         if(file.endswith('.json') and os.path.isfile(folder+"/"+method+"/"+file[:-5]+".jpeg")):
