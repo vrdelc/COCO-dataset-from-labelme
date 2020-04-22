@@ -84,78 +84,77 @@ def main():
     label_files = glob.glob(osp.join(args.input_dir, '*.json'))
 
     for image_id, label_file in enumerate(label_files):
-        #Change if imagePath is different
+
+        print('Generating dataset from:', label_file)
+        with open(label_file) as f:
+            label_data = json.load(f)
+            
         base = osp.splitext(osp.basename(label_file))[0]
         out_img_file = osp.join(
             args.output_dir, base + '.jpg'
         )
 
-        if os.path.exists(label_file) and os.path.exists(out_img_file):
-            print('Generating dataset from:', label_file)
-            with open(label_file) as f:
-                label_data = json.load(f)
+        img_file = osp.join(
+            osp.dirname(label_file), label_data['imagePath']
+        )
 
-            img_file = osp.join(
-                osp.dirname(label_file), label_data['imagePath']
+        img = np.asarray(PIL.Image.open(img_file).convert('RGB'))
+        PIL.Image.fromarray(img).save(out_img_file)
+        data['images'].append(dict(
+            license=0,
+            url=None,
+            file_name=osp.relpath(out_img_file, osp.dirname(out_ann_file)),
+            height=img.shape[0],
+            width=img.shape[1],
+            date_captured=None,
+            id=image_id,
+        ))
+
+        masks = {}                                     # for area
+        segmentations = collections.defaultdict(list)  # for segmentation
+        for shape in label_data['shapes']:
+            points = shape['points']
+            label = shape['label']
+            group_id = shape.get('group_id')
+            shape_type = shape.get('shape_type')
+            mask = labelme.utils.shape_to_mask(
+                img.shape[:2], points, shape_type
             )
 
-            img = np.asarray(PIL.Image.open(img_file).convert('RGB'))
-            PIL.Image.fromarray(img).save(out_img_file)
-            data['images'].append(dict(
-                license=0,
-                url=None,
-                file_name=osp.relpath(out_img_file, osp.dirname(out_ann_file)),
-                height=img.shape[0],
-                width=img.shape[1],
-                date_captured=None,
-                id=image_id,
+            if group_id is None:
+                group_id = uuid.uuid1()
+
+            instance = (label, group_id)
+
+            if instance in masks:
+                masks[instance] = masks[instance] | mask
+            else:
+                masks[instance] = mask
+
+            points = np.asarray(points).flatten().tolist()
+            segmentations[instance].append(points)
+        segmentations = dict(segmentations)
+
+        for instance, mask in masks.items():
+            cls_name, group_id = instance
+            if cls_name not in class_name_to_id:
+                continue
+            cls_id = class_name_to_id[cls_name]
+
+            mask = np.asfortranarray(mask.astype(np.uint8))
+            mask = pycocotools.mask.encode(mask)
+            area = float(pycocotools.mask.area(mask))
+            bbox = pycocotools.mask.toBbox(mask).flatten().tolist()
+
+            data['annotations'].append(dict(
+                id=len(data['annotations']),
+                image_id=image_id,
+                category_id=cls_id,
+                segmentation=segmentations[instance],
+                area=area,
+                bbox=bbox,
+                iscrowd=0,
             ))
-
-            masks = {}                                     # for area
-            segmentations = collections.defaultdict(list)  # for segmentation
-            for shape in label_data['shapes']:
-                points = shape['points']
-                label = shape['label']
-                group_id = shape.get('group_id')
-                shape_type = shape.get('shape_type')
-                mask = labelme.utils.shape_to_mask(
-                    img.shape[:2], points, shape_type
-                )
-
-                if group_id is None:
-                    group_id = uuid.uuid1()
-
-                instance = (label, group_id)
-
-                if instance in masks:
-                    masks[instance] = masks[instance] | mask
-                else:
-                    masks[instance] = mask
-
-                points = np.asarray(points).flatten().tolist()
-                segmentations[instance].append(points)
-            segmentations = dict(segmentations)
-
-            for instance, mask in masks.items():
-                cls_name, group_id = instance
-                if cls_name not in class_name_to_id:
-                    continue
-                cls_id = class_name_to_id[cls_name]
-
-                mask = np.asfortranarray(mask.astype(np.uint8))
-                mask = pycocotools.mask.encode(mask)
-                area = float(pycocotools.mask.area(mask))
-                bbox = pycocotools.mask.toBbox(mask).flatten().tolist()
-
-                data['annotations'].append(dict(
-                    id=len(data['annotations']),
-                    image_id=image_id,
-                    category_id=cls_id,
-                    segmentation=segmentations[instance],
-                    area=area,
-                    bbox=bbox,
-                    iscrowd=0,
-                ))
 
     with open(out_ann_file, 'w') as f:
         json.dump(data, f)
